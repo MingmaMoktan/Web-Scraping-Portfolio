@@ -1,46 +1,5 @@
-# --- Python Environment ---
-wsp/
-env/
-.env
+venv/
 __pycache__/
-*.py[cod]
-*$py.class
-.ipynb_checkpoints/
-
-# --- Web Scraping & Playwright ---
-# Ignore browser binaries and traces
-.auth/
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
-# If you download browser binaries locally instead of global
-.cache/ms-playwright/
-
-# --- Data & Databases ---
-# Ignore large raw data files (keep your repo light)
-*.csv
-*.xlsx
-*.json
-# Exception: allow small sample files if they are in a specific sample folder
-!data_sample.csv
-!phase1_basics/day1_hacker_news/data_sample.csv
-
-# SQLite databases
-*.db
-*.sqlite3
-
-# --- OS & IDE ---
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+.env
 *.log
-
-# --- Distribution / Packaging ---
-dist/
-build/
-*.egg-info/
-
-*.csv
-*.ipynb
+.activepieces/
