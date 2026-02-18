@@ -1,0 +1,5 @@
+crawl4ai==0.8.*
+pydantic==2.*
+pandas==2.*
+playwright==1.*
+openai==1.*

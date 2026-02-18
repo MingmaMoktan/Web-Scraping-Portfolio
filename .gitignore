@@ -1,24 +1,20 @@
-# 1. Create .gitignore FIRST (blocks future bloat)
-cat > .gitignore << 'EOF'
-# Venv + Dependencies (15k+ files!)
+# Virtual environments
 venv/
+env/
+.env
+.venv/
+venvs/
+
+# Dependencies
 __pycache__/
 *.pyc
-.crawl4ai/
-chromium*/
-*.csv
-*.json
-*.xlsx
-.env
-data/
-output/
-pip-wheel-metadata/
-.pytest_cache/
-.mypy_cache/
-EOF
+*.pyo
+*.pyd
+.Python
+env/
+venv/
 
-# 2. Remove tracked bloat + recommit clean
-git rm -r --cached venv/ .crawl4ai/ __pycache__/ *.csv 2>/dev/null || true
-git add .gitignore
-git commit -m "🔥 Clean: Remove 10k dependency files + .gitignore"
-git push
+# Output CSVs (add these)
+*.csv
+plumbers_*.csv
+dentists_*.csv
