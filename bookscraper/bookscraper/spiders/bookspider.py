@@ -21,6 +21,5 @@ class BookspiderSpider(scrapy.Spider):
                 next_page_url = 'https://books.toscrape.com/' + next_page
             else:
                 next_page_url = 'https://books.toscrape.com/catalogue/' + next_page
-            yield response.follow(next_page_url, callback=self.parse)
-            
+            yield response.follow(next_page_url, callback=self.parse) # Here callback is the function that will be called to handle the response downloaded for this request. The response parameter is an instance of TextResponse that holds the page content and has further helpful methods to handle it.
             
