@@ -20,8 +20,13 @@ class BookItem(scrapy.Item):
    title = scrapy.Field()
    upc = scrapy.Field()
    product_type = scrapy.Field()
+   '''
+   # We can also use the serializer argument if we don't want more preprocessing of data in pipeline.py
    price_excl_tax = scrapy.Field(serializer=serialize_price)  # Use the serialize_price function to format the price_excl_tax field
    price_incl_tax = scrapy.Field(serializer=serialize_price)  # Use the serialize_price function to format the price_incl_tax field
+   '''
+   price_excl_tax = scrapy.Field()
+   price_incl_tax = scrapy.Field()
    tax = scrapy.Field()
    availability = scrapy.Field()
    num_reviews = scrapy.Field()
