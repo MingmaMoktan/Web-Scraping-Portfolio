@@ -137,6 +137,8 @@ class SaveToPostgresPipeline:
         except Exception as e:
             self.conn.rollback()
             spider.logger.error(f" Database Insert Error: {e}")
+        
+        self.conn.commit()
 
         return item
 
