@@ -74,6 +74,28 @@ class SaveToPostgresPipeline:
         db_url = 'postgresql://postgres:Dm%401995@localhost:5432/book'
         self.engine = create_engine(db_url)
         self.conn = self.engine.connect()
+    
+    # 2. Create the table automatically if it doesn't exist
+        create_table_query = text("""
+            CREATE TABLE IF NOT EXISTS books (
+                id SERIAL PRIMARY KEY,
+                url TEXT,
+                title VARCHAR(255),
+                upc VARCHAR(255),
+                product_type VARCHAR(255),
+                price_excl_tax NUMERIC(10, 2),
+                price_incl_tax NUMERIC(10, 2),
+                tax NUMERIC(10, 2),
+                availability INT,
+                num_reviews INT,
+                stars INT,
+                category VARCHAR(255),
+                description TEXT,
+                price VARCHAR(50)
+            );
+        """)
+        self.conn.execute(create_table_query)
+        self.conn.commit()
 
     def process_item(self, item, spider):
         # 2. Extract values directly from item
