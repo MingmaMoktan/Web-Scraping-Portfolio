@@ -4,6 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+from itemloaders.processors import TakeFirst
 
 
 class BookscraperItem(scrapy.Item):
@@ -16,8 +17,8 @@ def serialize_price(value):
     return f'£ {str(value)}'
 
 class BookItem(scrapy.Item):
-   url = scrapy.Field()
-   title = scrapy.Field()
+   url = scrapy.Field(output_processor=TakeFirst())
+   title = scrapy.Field(output_processor=TakeFirst())
    upc = scrapy.Field()
    product_type = scrapy.Field()
    '''

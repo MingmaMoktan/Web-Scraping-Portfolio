@@ -64,3 +64,47 @@ class BookscraperPipeline:
         adapter['stars'] = stars_dict.get(stars_text_value, 0)
 
         return item
+    
+from sqlalchemy import create_engine, text
+
+class SaveToPostgresPipeline:
+    def open_spider(self, spider):
+        # 1. Open the connection when spider starts
+        # Format: postgresql://username:password@localhost:5432/dbname
+        db_url = 'postgresql://postgres:Dm%401995@localhost:5432/book'
+        self.engine = create_engine(db_url)
+        self.conn = self.engine.connect()
+
+    def process_item(self, item, spider):
+        # 2. Extract values directly from item
+        url_val = item.get('url')[0] if isinstance(item.get('url'), list) else item.get('url')
+
+        # 3. Insert into PostgreSQL using raw SQL
+        query = text("""
+            INSERT INTO books (url, title, upc, product_type, price_excl_tax, price_incl_tax, 
+                               tax, availability, num_reviews, stars, category, description, price)
+            VALUES (:url, :title, :upc, :product_type, :price_excl_tax, :price_incl_tax, 
+                    :tax, :availability, :num_reviews, :stars, :category, :description, :price)
+        """)
+
+        self.conn.execute(query, {
+            'url': url_val,
+            'title': item.get('title'),
+            'upc': item.get('upc'),
+            'product_type': item.get('product_type'),
+            'price_excl_tax': item.get('price_excl_tax'),
+            'price_incl_tax': item.get('price_incl_tax'),
+            'tax': item.get('tax'),
+            'availability': item.get('availability'),
+            'num_reviews': item.get('num_reviews'),
+            'stars': item.get('stars'),
+            'category': item.get('category'),
+            'description': item.get('description'),
+            'price': item.get('price')
+        })
+        self.conn.commit()
+        return item
+
+    def close_spider(self, spider):
+        # 4. Close connection when done
+        self.conn.close()

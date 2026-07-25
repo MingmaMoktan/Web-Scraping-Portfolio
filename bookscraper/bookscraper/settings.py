@@ -62,8 +62,14 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+
+# settings.py
+
+POSTGRES_URL = 'postgresql://postgres:Dm%401995@localhost:5432/book'
+
 ITEM_PIPELINES = {
    "bookscraper.pipelines.BookscraperPipeline": 300,
+   "bookscraper.pipelines.SaveToPostgresPipeline": 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
