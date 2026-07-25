@@ -98,10 +98,14 @@ class SaveToPostgresPipeline:
         self.conn.commit()
 
     def process_item(self, item, spider):
-        # 2. Extract values directly from item
-        url_val = item.get('url')[0] if isinstance(item.get('url'), list) else item.get('url')
+        # 1. Unpack url if it's a tuple or list
+        url_raw = item.get("url")
+        if isinstance(url_raw, (list, tuple)) and len(url_raw) > 0:
+            url_val = str(url_raw[0])
+        else:
+            url_val = str(url_raw) if url_raw else None
 
-        # 3. Insert into PostgreSQL using raw SQL
+        # 2. SQL Insert query
         query = text("""
             INSERT INTO books (url, title, upc, product_type, price_excl_tax, price_incl_tax, 
                                tax, availability, num_reviews, stars, category, description, price)
@@ -109,22 +113,31 @@ class SaveToPostgresPipeline:
                     :tax, :availability, :num_reviews, :stars, :category, :description, :price)
         """)
 
-        self.conn.execute(query, {
-            'url': url_val,
-            'title': item.get('title'),
-            'upc': item.get('upc'),
-            'product_type': item.get('product_type'),
-            'price_excl_tax': item.get('price_excl_tax'),
-            'price_incl_tax': item.get('price_incl_tax'),
-            'tax': item.get('tax'),
-            'availability': item.get('availability'),
-            'num_reviews': item.get('num_reviews'),
-            'stars': item.get('stars'),
-            'category': item.get('category'),
-            'description': item.get('description'),
-            'price': item.get('price')
-        })
-        self.conn.commit()
+        try:
+            self.conn.execute(
+                query,
+                {
+                    "url": url_val,
+                    "title": item.get("title"),
+                    "upc": item.get("upc"),
+                    "product_type": item.get("product_type"),
+                    "price_excl_tax": item.get("price_excl_tax"),
+                    "price_incl_tax": item.get("price_incl_tax"),
+                    "tax": item.get("tax"),
+                    "availability": item.get("availability"),
+                    "num_reviews": item.get("num_reviews"),
+                    "stars": item.get("stars"),
+                    "category": item.get("category"),
+                    "description": item.get("description"),
+                    "price": str(item.get("price")),
+                },
+            )
+            self.conn.commit()
+            spider.logger.info(f" Successfully saved to DB: {item.get('title')}")
+        except Exception as e:
+            self.conn.rollback()
+            spider.logger.error(f" Database Insert Error: {e}")
+
         return item
 
     def close_spider(self, spider):
