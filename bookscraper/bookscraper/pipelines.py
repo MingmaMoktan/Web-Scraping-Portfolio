@@ -69,13 +69,12 @@ from sqlalchemy import create_engine, text
 
 class SaveToPostgresPipeline:
     def open_spider(self, spider):
-        # 1. Open the connection when spider starts
-        # Format: postgresql://username:password@localhost:5432/dbname
+        # 1. Connect using SQLAlchemy engine
         db_url = 'postgresql://postgres:Dm%401995@localhost:5432/book'
         self.engine = create_engine(db_url)
         self.conn = self.engine.connect()
     
-    # 2. Create the table automatically if it doesn't exist
+        # 2. Create table using explicit commit
         create_table_query = text("""
             CREATE TABLE IF NOT EXISTS books (
                 id SERIAL PRIMARY KEY,
@@ -94,54 +93,59 @@ class SaveToPostgresPipeline:
                 price VARCHAR(50)
             );
         """)
-        self.conn.execute(create_table_query)
-        self.conn.commit()
+        
+        # Use explicit transaction block for table creation
+        with self.conn.begin():
+            self.conn.execute(create_table_query)
 
     def process_item(self, item, spider):
-        # 1. Unpack url if it's a tuple or list
+        # Unpack URL if it's wrapped in a list/tuple
         url_raw = item.get("url")
         if isinstance(url_raw, (list, tuple)) and len(url_raw) > 0:
             url_val = str(url_raw[0])
         else:
             url_val = str(url_raw) if url_raw else None
 
-        # 2. SQL Insert query
         query = text("""
-            INSERT INTO books (url, title, upc, product_type, price_excl_tax, price_incl_tax, 
-                               tax, availability, num_reviews, stars, category, description, price)
-            VALUES (:url, :title, :upc, :product_type, :price_excl_tax, :price_incl_tax, 
-                    :tax, :availability, :num_reviews, :stars, :category, :description, :price)
+            INSERT INTO books (
+                url, title, upc, product_type, price_excl_tax, price_incl_tax, 
+                tax, availability, num_reviews, stars, category, description, price
+            )
+            VALUES (
+                :url, :title, :upc, :product_type, :price_excl_tax, :price_incl_tax, 
+                :tax, :availability, :num_reviews, :stars, :category, :description, :price
+            )
         """)
 
+        # Using "with self.conn.begin():" automatically commits if successful,
+        # and automatically rolls back if an error occurs.
         try:
-            self.conn.execute(
-                query,
-                {
-                    "url": url_val,
-                    "title": item.get("title"),
-                    "upc": item.get("upc"),
-                    "product_type": item.get("product_type"),
-                    "price_excl_tax": item.get("price_excl_tax"),
-                    "price_incl_tax": item.get("price_incl_tax"),
-                    "tax": item.get("tax"),
-                    "availability": item.get("availability"),
-                    "num_reviews": item.get("num_reviews"),
-                    "stars": item.get("stars"),
-                    "category": item.get("category"),
-                    "description": item.get("description"),
-                    "price": str(item.get("price")),
-                },
-            )
-            self.conn.commit()
-            spider.logger.info(f" Successfully saved to DB: {item.get('title')}")
+            with self.conn.begin():
+                self.conn.execute(
+                    query,
+                    {
+                        "url": url_val,
+                        "title": item.get("title"),
+                        "upc": item.get("upc"),
+                        "product_type": item.get("product_type"),
+                        "price_excl_tax": item.get("price_excl_tax"),
+                        "price_incl_tax": item.get("price_incl_tax"),
+                        "tax": item.get("tax"),
+                        "availability": item.get("availability"),
+                        "num_reviews": item.get("num_reviews"),
+                        "stars": item.get("stars"),
+                        "category": item.get("category"),
+                        "description": item.get("description"),
+                        "price": str(item.get("price")),
+                    },
+                )
+            spider.logger.info(f"Successfully saved to DB: {item.get('title')}")
         except Exception as e:
-            self.conn.rollback()
-            spider.logger.error(f" Database Insert Error: {e}")
-        
-        self.conn.commit()
+            spider.logger.error(f"Database Insert Error for '{item.get('title')}': {e}")
 
         return item
 
     def close_spider(self, spider):
-        # 4. Close connection when done
+        # Close the connection cleanly when finished
         self.conn.close()
+        self.engine.dispose()
