@@ -69,7 +69,7 @@ POSTGRES_URL = 'postgresql://postgres:Dm%401995@localhost:5432/book'
 
 ITEM_PIPELINES = {
    "bookscraper.pipelines.BookscraperPipeline": 300,
-   "bookscraper.pipelines.SaveToPostgresPipeline": 400,
+   # "bookscraper.pipelines.SaveToPostgresPipeline": 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
