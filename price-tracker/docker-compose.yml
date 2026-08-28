@@ -1,0 +1,9 @@
+services:
+  scraper:
+    build: .
+    container_name: gigantti_scraper
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    ipc: host  # Recommended for Chromium stability inside Docker
